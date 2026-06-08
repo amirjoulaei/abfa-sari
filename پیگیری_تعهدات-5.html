@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>پیگیری تعهدات</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1a56db;
+    --blue-dark: #1e429f;
+    --blue-light: #ebf5ff;
+    --red: #e02424;
+    --red-light: #fdf2f2;
+    --green: #057a55;
+    --green-light: #f3faf7;
+    --orange: #d03801;
+    --orange-light: #fff8f1;
+    --gray: #6b7280;
+    --gray-light: #f9fafb;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-soft: #6b7280;
+    --bg: #f3f4f6;
+    --white: #ffffff;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* هدر */
+  #header {
+    background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+    color: white;
+    padding: 16px 16px 20px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(30,66,159,0.4);
+  }
+  #header h1 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  #header p { font-size: 12px; opacity: 0.8; }
+
+  /* تب‌ها */
+  #tabs {
+    display: flex;
+    background: white;
+    border-bottom: 2px solid var(--border);
+    position: sticky; top: 72px; z-index: 99;
+  }
+  .tab {
+    flex: 1; padding: 12px 4px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; color: var(--gray);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* محتوا */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* کارت */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  /* فرم ثبت */
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--text); margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    font-size: 14px; color: var(--text);
+    background: var(--gray-light);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--blue); background: white; }
+
+  .btn {
+    width: 100%; padding: 13px;
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: white; box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+  }
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* آمار بالا */
+  #stats-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-bottom: 16px;
+  }
+  .stat-card {
+    background: white; border-radius: var(--radius);
+    padding: 12px 8px; text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .num { font-size: 26px; font-weight: 800; line-height: 1; }
+  .stat-card .lbl { font-size: 11px; color: var(--gray); margin-top: 4px; }
+  .stat-card.blue .num { color: var(--blue); }
+  .stat-card.orange .num { color: var(--orange); }
+  .stat-card.green .num { color: var(--green); }
+
+  /* کارت مشترک */
+  .promise-card {
+    background: white; border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 10px;
+    overflow: hidden; border-right: 4px solid var(--blue);
+    transition: all 0.2s;
+  }
+  .promise-card.paid { border-right-color: var(--green); }
+  .promise-card.failed { border-right-color: var(--red); }
+  .promise-card.office { border-right-color: #6d28d9; }
+  .promise-card.overdue { border-right-color: var(--orange); }
+
+  .pc-header {
+    padding: 12px 14px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pc-name { font-size: 15px; font-weight: 700; }
+  .pc-badge {
+    font-size: 11px; font-weight: 600; padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .badge-pending { background: #eff6ff; color: var(--blue); }
+  .badge-paid { background: var(--green-light); color: var(--green); }
+  .badge-failed { background: var(--red-light); color: var(--red); }
+  .badge-overdue { background: var(--orange-light); color: var(--orange); }
+  .badge-office { background: #f5f3ff; color: #6d28d9; }
+
+  .pc-info {
+    padding: 0 14px 10px;
+    font-size: 12px; color: var(--gray);
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .pc-info span { display: flex; align-items: center; gap: 4px; }
+
+  .pc-actions {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 8px;
+  }
+  .action-btn {
+    flex: 1; padding: 8px;
+    border: 1.5px solid; border-radius: var(--radius-sm);
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .action-btn:active { transform: scale(0.97); }
+  .btn-paid { color: var(--green); border-color: var(--green); background: var(--green-light); }
+  .btn-failed { color: var(--red); border-color: var(--red); background: var(--red-light); }
+  .btn-call {
+    color: var(--blue); border-color: var(--blue); background: var(--blue-light);
+    flex: 0.6;
+  }
+  .btn-delete { color: var(--gray); border-color: var(--border); background: var(--gray-light); flex: 0.4; }
+  .btn-office { color: #6d28d9; border-color: #6d28d9; background: #f5f3ff; }
+
+  /* فیلتر */
+  .filter-bar {
+    display: flex; gap: 8px; margin-bottom: 14px;
+    overflow-x: auto; padding-bottom: 4px;
+  }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+    background: white; color: var(--gray);
+    transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+  /* تاریخچه */
+  .history-item {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .hist-icon { font-size: 20px; }
+  .hist-info { flex: 1; }
+  .hist-name { font-size: 14px; font-weight: 600; }
+  .hist-detail { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .hist-count {
+    font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; background: var(--red-light); color: var(--red);
+  }
+
+  /* خالی */
+  .empty {
+    text-align: center; padding: 40px 20px;
+    color: var(--gray);
+  }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* تست */
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: #1f2937; color: white;
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; font-weight: 500;
+    z-index: 999; opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* نوار پایین */
+  #bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: white; border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0 12px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1; text-align: center; cursor: pointer;
+    font-size: 10px; color: var(--gray); font-weight: 500;
+  }
+  .nav-item .nav-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+  .nav-item.active { color: var(--blue); }
+
+  /* مودال */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200; display: none;
+    align-items: flex-end;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white; width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 16px 30px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-title {
+    font-size: 16px; font-weight: 700;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-btn {
+    width: 100%; padding: 13px;
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; margin-bottom: 8px;
+  }
+  .modal-btn-cancel { background: var(--gray-light); color: var(--gray); }
+  .modal-btn-confirm { background: var(--red); color: white; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>📋 پیگیری تعهدات مشترکان</h1>
+  <p>سیستم ثبت و پیگیری قول‌های پرداخت</p>
+</div>
+
+<div id="tabs">
+  <div class="tab active" onclick="switchTab('list')">📋 لیست پیگیری</div>
+  <div class="tab" onclick="switchTab('add')">➕ ثبت جدید</div>
+  <div class="tab" onclick="switchTab('history')">📊 تاریخچه</div>
+</div>
+
+<!-- صفحه لیست -->
+<div class="page active" id="page-list">
+  <div id="stats-bar">
+    <div class="stat-card blue">
+      <div class="num" id="stat-pending">0</div>
+      <div class="lbl">در انتظار</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="num" id="stat-overdue">0</div>
+      <div class="lbl">سررسید گذشته</div>
+    </div>
+    <div class="stat-card green">
+      <div class="num" id="stat-paid">0</div>
+      <div class="lbl">پرداخت شده</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all')">همه</button>
+    <button class="filter-btn" onclick="setFilter('overdue')">⚠️ سررسید گذشته</button>
+    <button class="filter-btn" onclick="setFilter('pending')">🔵 در انتظار</button>
+    <button class="filter-btn" onclick="setFilter('paid')">✅ پرداخت شده</button>
+    <button class="filter-btn" onclick="setFilter('failed')">❌ پیچوندن</button>
+    <button class="filter-btn" onclick="setFilter('office')">🏢 مراجعه اداره</button>
+  </div>
+
+  <div id="promises-list"></div>
+</div>
+
+<!-- صفحه ثبت -->
+<div class="page" id="page-add">
+  <div class="card">
+    <div class="form-group">
+      <label class="form-label">👤 نام و نام خانوادگی</label>
+      <input class="form-input" id="f-name" type="text" placeholder="مثال: محمد رضایی">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📱 شماره موبایل</label>
+      <input class="form-input" id="f-mobile" type="tel" placeholder="09xxxxxxxxx" maxlength="11">
+    </div>
+    <div class="form-group">
+      <label class="form-label">💰 مبلغ بدهی (ریال)</label>
+      <input class="form-input" id="f-debt" type="number" placeholder="مثال: 5000000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📅 تاریخ قول پرداخت (شمسی)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <select class="form-input" id="f-year" style="text-align:center"></select>
+        <select class="form-input" id="f-month" style="text-align:center">
+          <option value="1">فروردین</option><option value="2">اردیبهشت</option>
+          <option value="3">خرداد</option><option value="4">تیر</option>
+          <option value="5">مرداد</option><option value="6">شهریور</option>
+          <option value="7">مهر</option><option value="8">آبان</option>
+          <option value="9">آذر</option><option value="10">دی</option>
+          <option value="11">بهمن</option><option value="12">اسفند</option>
+        </select>
+        <select class="form-input" id="f-day" style="text-align:center"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">🕐 ساعت قول پرداخت</label>
+      <input class="form-input" id="f-time" type="time">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📝 یادداشت (اختیاری)</label>
+      <input class="form-input" id="f-note" type="text" placeholder="مثال: گفت بعد از ظهر واریز میکنه">
+    </div>
+    <button class="btn btn-primary" onclick="addPromise()">✅ ثبت تعهد</button>
+  </div>
+</div>
+
+<!-- صفحه تاریخچه -->
+<div class="page" id="page-history">
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-weight:700;font-size:15px">🏆 رتبه‌بندی پیچوندن‌ها</span>
+      <span style="font-size:12px;color:var(--gray)">بیشترین قول بی‌عمل</span>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:15px;margin-bottom:12px">📈 آمار کلی</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="global-stats"></div>
+  </div>
+</div>
+
+<!-- مودال حذف -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-title">🗑️ حذف تعهد</div>
+    <p style="font-size:14px;color:var(--gray);margin-bottom:16px">آیا مطمئن هستید؟</p>
+    <button class="modal-btn modal-btn-confirm" onclick="confirmDelete()">بله، حذف شود</button>
+    <button class="modal-btn modal-btn-cancel" onclick="closeModal()">انصراف</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ذخیره داده در localStorage
+let promises = JSON.parse(localStorage.getItem('promises') || '[]');
+let currentFilter = 'all';
+let deleteId = null;
+
+// ---- تبدیل تاریخ شمسی ----
+function toJalali(gy, gm, gd) {
+  let g_d_no, j_d_no, j_np, i;
+  const g_days_in_month = [31,28,31,30,31,30,31,31,30,31,30,31];
+  const j_days_in_month = [31,31,31,31,31,31,30,30,30,30,30,29];
+  gy -= 1600; gm -= 1; gd -= 1;
+  g_d_no = 365*gy + Math.floor((gy+3)/4) - Math.floor((gy+99)/100) + Math.floor((gy+399)/400);
+  for (i=0; i<gm; i++) g_d_no += g_days_in_month[i];
+  if (gm>1 && ((gy%4==0 && gy%100!=0) || gy%400==0)) g_d_no++;
+  g_d_no += gd;
+  j_d_no = g_d_no - 79;
+  j_np = Math.floor(j_d_no/12053); j_d_no %= 12053;
+  let jy = 979 + 33*j_np + 4*Math.floor(j_d_no/1461);
+  j_d_no %= 1461;
+  if (j_d_no >= 366) { jy += Math.floor((j_d_no-1)/365); j_d_no = (j_d_no-1)%365; }
+  let jm, jd;
+  for (i=0; i<11 && j_d_no>=j_days_in_month[i]; i++) j_d_no -= j_days_in_month[i];
+  jm = i+1; jd = j_d_no+1;
+  return [jy, jm, jd];
+}
+
+function fromJalali(jy, jm, jd) {
+  const j_days_in_month = [31,31,31,31,31,31,30,30,30,30,30,29];
+  jy -= 979; jm -= 1; jd -= 1;
+  let j_d_no = 365*jy + Math.floor(jy/33)*8 + Math.floor((jy%33+3)/4);
+  for (let i=0; i<jm; i++) j_d_no += j_days_in_month[i];
+  j_d_no += jd;
+  let g_d_no = j_d_no + 79;
+  let gy = 1600 + 400*Math.floor(g_d_no/146097); g_d_no = g_d_no%146097;
+  let leap = true;
+  if (g_d_no >= 36525) { g_d_no--; gy += 100*Math.floor(g_d_no/36524); g_d_no = g_d_no%36524; if (g_d_no>=365) g_d_no++; else leap=false; }
+  gy += 4*Math.floor(g_d_no/1461); g_d_no = g_d_no%1461;
+  if (g_d_no>=366) { leap=false; g_d_no--; gy+=Math.floor(g_d_no/365); g_d_no=g_d_no%365; }
+  const g_days_in_month = [31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  let i, gm, gd;
+  for (i=0; g_d_no>=g_days_in_month[i]; i++) g_d_no-=g_days_in_month[i];
+  gm=i+1; gd=g_d_no+1;
+  return `${gy}-${String(gm).padStart(2,'0')}-${String(gd).padStart(2,'0')}`;
+}
+
+function todayJalali() {
+  const n = new Date();
+  return toJalali(n.getFullYear(), n.getMonth()+1, n.getDate());
+}
+
+function jalaliDisplay(isoDate) {
+  if (!isoDate) return '';
+  const [gy, gm, gd] = isoDate.split('-').map(Number);
+  const [jy, jm, jd] = toJalali(gy, gm, gd);
+  const months = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+  return `${jd} ${months[jm-1]} ${jy}`;
+}
+
+function initDatePickers() {
+  const yearSel = document.getElementById('f-year');
+  const daySel = document.getElementById('f-day');
+  const [jy, jm, jd] = todayJalali();
+  for (let y = jy; y <= jy+2; y++) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    if (y === jy) opt.selected = true;
+    yearSel.appendChild(opt);
+  }
+  for (let d = 1; d <= 31; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    if (d === jd) opt.selected = true;
+    daySel.appendChild(opt);
+  }
+  document.getElementById('f-month').value = jm;
+}
+
+function getSelectedDate() {
+  const y = parseInt(document.getElementById('f-year').value);
+  const m = parseInt(document.getElementById('f-month').value);
+  const d = parseInt(document.getElementById('f-day').value);
+  return fromJalali(y, m, d);
+}
+
+initDatePickers();
+document.getElementById('f-time').value = '17:00';
+
+function save() {
+  localStorage.setItem('promises', JSON.stringify(promises));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['list','add','history'][i] === tab);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'list') renderList();
+  if (tab === 'history') renderHistory();
+}
+
+function getStatus(p) {
+  if (p.status === 'paid') return 'paid';
+  if (p.status === 'failed') return 'failed';
+  if (p.status === 'office') return 'office';
+  const deadline = new Date(p.date + 'T' + p.time);
+  if (new Date() > deadline) return 'overdue';
+  return 'pending';
+}
+
+function statusLabel(s) {
+  return {paid:'✅ پرداخت شد', failed:'❌ پیچوند', overdue:'⚠️ سررسید گذشته', pending:'🔵 در انتظار', office:'🏢 مراجعه اداره'}[s];
+}
+function statusBadge(s) {
+  return {paid:'badge-paid', failed:'badge-failed', overdue:'badge-overdue', pending:'badge-pending', office:'badge-office'}[s];
+}
+
+function formatDebt(n) {
+  return parseInt(n).toLocaleString('fa-IR') + ' ریال';
+}
+
+function formatDateTime(date, time) {
+  return date.replace(/-/g,'/') + ' ساعت ' + time;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(
+      {all:'همه', overdue:'سررسید', pending:'انتظار', paid:'پرداخت', failed:'پیچ'}[f] || f
+    ));
+  });
+  renderList();
+}
+
+function renderList() {
+  const list = document.getElementById('promises-list');
+  let filtered = promises.filter(p => {
+    const s = getStatus(p);
+    if (currentFilter === 'all') return true;
+    return s === currentFilter;
+  });
+
+  // مرتب‌سازی: سررسید گذشته اول
+  filtered.sort((a,b) => {
+    const order = {overdue:0, pending:1, failed:2, paid:3};
+    return order[getStatus(a)] - order[getStatus(b)];
+  });
+
+  // آمار
+  document.getElementById('stat-pending').textContent = promises.filter(p => getStatus(p)==='pending').length;
+  document.getElementById('stat-overdue').textContent = promises.filter(p => getStatus(p)==='overdue').length;
+  document.getElementById('stat-paid').textContent = promises.filter(p => getStatus(p)==='paid').length;
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="icon">📭</div><p>موردی یافت نشد</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => {
+    const s = getStatus(p);
+    return `
+    <div class="promise-card ${s}" id="card-${p.id}">
+      <div class="pc-header">
+        <span class="pc-name">${p.name}</span>
+        <span class="pc-badge ${statusBadge(s)}">${statusLabel(s)}</span>
+      </div>
+      <div class="pc-info">
+        <span>📱 ${p.mobile}</span>
+        <span>💰 ${formatDebt(p.debt)}</span>
+        <span>📅 ${jalaliDisplay(p.date)}</span>
+        <span>🕐 ${p.time}</span>
+        ${p.note ? `<span style="grid-column:1/-1">📝 ${p.note}</span>` : ''}
+      </div>
+      <div class="pc-actions">
+        ${s !== 'paid' ? `<button class="action-btn btn-paid" onclick="markPaid('${p.id}')">✅ پرداخت کرد</button>` : ''}
+        ${s !== 'failed' && s !== 'paid' && s !== 'office' ? `<button class="action-btn btn-failed" onclick="markFailed('${p.id}')">❌ پیچوند</button>` : ''}
+        ${s !== 'office' && s !== 'paid' ? `<button class="action-btn btn-office" onclick="markOffice('${p.id}')">🏢 اداره</button>` : ''}
+        <button class="action-btn btn-call" onclick="sendSMS('${p.mobile}')">💬 پیامک</button>
+        <button class="action-btn btn-delete" onclick="askDelete('${p.id}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addPromise() {
+  const name = document.getElementById('f-name').value.trim();
+  const mobile = document.getElementById('f-mobile').value.trim();
+  const debt = document.getElementById('f-debt').value.trim();
+  const date = getSelectedDate();
+  const time = document.getElementById('f-time').value;
+  const note = document.getElementById('f-note').value.trim();
+
+  if (!name || !mobile || !debt || !date || !time) {
+    showToast('⚠️ لطفاً همه فیلدها را پر کنید');
+    return;
+  }
+  if (mobile.length !== 11 || !mobile.startsWith('09')) {
+    showToast('⚠️ شماره موبایل معتبر نیست');
+    return;
+  }
+
+  const p = {
+    id: Date.now().toString(),
+    name, mobile, debt, date, time, note,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    failCount: 0
+  };
+
+  promises.unshift(p);
+  save();
+  showToast('✅ تعهد با موفقیت ثبت شد');
+
+  // پاک کردن فرم
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-mobile').value = '';
+  document.getElementById('f-debt').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('f-date').valueAsDate = new Date();
+  document.getElementById('f-time').value = '17:00';
+
+  switchTab('list');
+}
+
+function markPaid(id) {
+  const p = promises.find(x => x.id === id);
+  if (p) { p.status = 'paid'; save(); renderList(); showToast('✅ پرداخت ثبت شد'); }
+}
+
+function markFailed(id) {
+  const p = promises.find(x => x.id === id);
+  if (p) { p.status = 'failed'; p.failCount = (p.failCount||0) + 1; save(); renderList(); showToast('❌ پیچوندن ثبت شد'); }
+}
+
+function markOffice(id) {
+  const p = promises.find(x => x.id === id);
+  if (p) { p.status = 'office'; save(); renderList(); showToast('🏢 مراجعه به اداره ثبت شد'); }
+}
+
+function sendSMS(mobile) {
+  window.location.href = 'sms:' + mobile;
+}
+
+function askDelete(id) {
+  deleteId = id;
+  document.getElementById('delete-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('delete-modal').classList.remove('show');
+  deleteId = null;
+}
+
+function confirmDelete() {
+  promises = promises.filter(p => p.id !== deleteId);
+  save(); closeModal(); renderList();
+  showToast('🗑️ حذف شد');
+}
+
+function renderHistory() {
+  // رتبه‌بندی پیچوندن‌ها
+  const failed = promises.filter(p => p.status === 'failed');
+  const byName = {};
+  failed.forEach(p => {
+    if (!byName[p.name]) byName[p.name] = {name: p.name, mobile: p.mobile, count: 0};
+    byName[p.name].count++;
+  });
+  const ranked = Object.values(byName).sort((a,b) => b.count - a.count);
+
+  const histList = document.getElementById('history-list');
+  if (ranked.length === 0) {
+    histList.innerHTML = `<div class="empty" style="padding:20px"><div class="icon">🎉</div><p>هنوز پیچوندنی ثبت نشده</p></div>`;
+  } else {
+    histList.innerHTML = ranked.slice(0,10).map((r,i) => `
+      <div class="history-item">
+        <div class="hist-icon">${['🥇','🥈','🥉'][i] || '📌'}</div>
+        <div class="hist-info">
+          <div class="hist-name">${r.name}</div>
+          <div class="hist-detail">📱 ${r.mobile}</div>
+        </div>
+        <div class="hist-count">${r.count} بار</div>
+      </div>
+    `).join('');
+  }
+
+  // آمار کلی
+  const total = promises.length;
+  const paid = promises.filter(p => p.status==='paid').length;
+  const failedTotal = promises.filter(p => p.status==='failed').length;
+  const pending = promises.filter(p => getStatus(p)==='pending').length;
+  const overdue = promises.filter(p => getStatus(p)==='overdue').length;
+  const rate = total > 0 ? Math.round((paid/total)*100) : 0;
+
+  document.getElementById('global-stats').innerHTML = `
+    <div style="background:var(--blue-light);border-radius:8px;padding:12px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--blue)">${total}</div>
+      <div style="font-size:11px;color:var(--gray)">کل ثبت‌شده</div>
+    </div>
+    <div style="background:var(--green-light);border-radius:8px;padding:12px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--green)">${rate}%</div>
+      <div style="font-size:11px;color:var(--gray)">نرخ پرداخت</div>
+    </div>
+    <div style="background:var(--red-light);border-radius:8px;padding:12px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--red)">${failedTotal}</div>
+      <div style="font-size:11px;color:var(--gray)">پیچوندن</div>
+    </div>
+    <div style="background:var(--orange-light);border-radius:8px;padding:12px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:var(--orange)">${overdue}</div>
+      <div style="font-size:11px;color:var(--gray)">سررسید گذشته</div>
+    </div>
+  `;
+}
+
+// بستن مودال با کلیک بیرون
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// اول بار
+renderList();
+</script>
+</body>
+</html>
